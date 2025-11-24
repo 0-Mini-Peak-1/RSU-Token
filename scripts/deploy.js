@@ -1,30 +1,42 @@
 // scripts/deploy.js
+// Hardhat v3 deploy script (ESM)
+// Works for Sepolia + localhost
 
 import { network } from "hardhat";
 
 const { ethers } = await network.connect();
 
 async function main() {
+  // Get signer (deployer)
   const [deployer] = await ethers.getSigners();
 
-  console.log("Deployer (admin):", deployer.address);
+  console.log("=======================================");
+  console.log("Deploying RSUToken...");
+  console.log("Deployer address:", deployer.address);
+  console.log("=======================================");
 
-  const rate = 100n; // 1 native coin -> 100 RSU (can be adjusted later)
+  // Set token exchange rate
+  const rate = 100n;
 
+  // Compile and deploy contract
   const RSUToken = await ethers.getContractFactory("RSUToken", deployer);
   const token = await RSUToken.deploy(rate);
 
-  console.log("Deploying RSUToken...");
+  console.log("Waiting for deployment...");
   await token.waitForDeployment();
 
-  const tokenAddress = await token.getAddress();
-  console.log("RSUToken deployed to:", tokenAddress);
-  console.log("Admin (DEFAULT_ADMIN_ROLE):", deployer.address);
-  console.log("Note: No merchant set yet. Call setMerchant() later.");
+  const deployedAddress = await token.getAddress();
+
+  console.log("=======================================");
+  console.log("RSUToken successfully deployed!");
+  console.log("Contract address:", deployedAddress);
+  console.log("Admin assigned:", deployer.address);
+  console.log("Rate:", rate.toString(), "RSU per 1 ETH");
+  console.log("=======================================");
 }
 
-
 main().catch((err) => {
+  console.error("❌ Deployment failed:");
   console.error(err);
   process.exitCode = 1;
 });
